@@ -10,6 +10,8 @@ import crypto from 'crypto';
 
 import fetch from 'node-fetch';
 
+import { URLSearchParams } from 'url';
+
 interface Action {
     id: string,
     name: string,
@@ -33,16 +35,18 @@ class HttpDevice extends Device {
 
         this.addCallbackAction('invoke', 'Invoke the action', async () => {
             if (action.method === 'POST' || action.method === 'PUT') {
-                const body = action.parameters
-                    .map(parameter => `${parameter.name}=${encodeURIComponent(parameter.value)}`)
-                    .reduce((acc, s) => `${acc}&${s}`, '');
+                const params = new URLSearchParams();
+
+                for (const param of action.parameters) {
+                    params.append(param.name, param.value);
+                }
 
                 await fetch(action.url, {
                     method: action.method.toLowerCase(),
                     headers: {
                         'Content-Type': 'application/x-www-form-urlencoded'
                     },
-                    body
+                    body: params.toString()
                 });
             } else {
                 await fetch(`${action.url}`, {
