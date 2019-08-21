@@ -17,6 +17,7 @@ interface Action {
     name: string,
     url: string,
     method: string,
+    contentType: string,
     queryParameters: Parameter[],
     bodyParameters: Parameter[]
 }
@@ -36,18 +37,37 @@ class HttpDevice extends Device {
 
         this.addCallbackAction('invoke', 'Invoke the action', async () => {
             if (action.method === 'POST' || action.method === 'PUT') {
-                const params = new URLSearchParams();
+                let body = '';
 
-                for (const param of action.bodyParameters) {
-                    params.append(param.name, param.value);
+                switch (action.contentType) {
+                    case 'application/x-www-form-urlencoded': {
+                        const params = new URLSearchParams();
+
+                        for (const param of action.bodyParameters) {
+                            params.append(param.name, param.value);
+                        }
+
+                        body = params.toString();
+                        break;
+                    }
+                    case 'application/json': {
+                        const obj: any = {};
+
+                        for (const param of action.bodyParameters) {
+                            obj[param.name] = param.value;
+                        }
+
+                        body = JSON.stringify(obj);
+                        break;
+                    }
                 }
 
                 await fetch(action.url, {
                     method: action.method.toLowerCase(),
                     headers: {
-                        'Content-Type': 'application/x-www-form-urlencoded'
+                        'Content-Type': action.contentType
                     },
-                    body: params.toString()
+                    body
                 });
             } else {
                 const url = new URL(action.url);
