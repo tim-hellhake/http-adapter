@@ -1,6 +1,6 @@
 {
   "name": "http-adapter",
-  "display_name": "Http",
+  "display_name": "HTTP",
   "version": "0.3.0",
   "description": "Let's you make http requests via actions",
   "main": "lib/index.js",
