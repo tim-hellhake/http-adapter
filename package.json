@@ -1,7 +1,7 @@
 {
   "name": "http-adapter",
   "display_name": "HTTP",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "Let's you make http requests via actions",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
