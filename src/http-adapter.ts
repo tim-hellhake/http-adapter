@@ -36,6 +36,12 @@ class HttpDevice extends Device {
         this.name = action.name;
 
         this.addCallbackAction('invoke', 'Invoke the action', async () => {
+            const url = new URL(action.url);
+
+            for (const param of action.queryParameters) {
+                url.searchParams.append(param.name, param.value);
+            }
+
             if (action.method === 'POST' || action.method === 'PUT') {
                 let body = '';
 
@@ -62,7 +68,7 @@ class HttpDevice extends Device {
                     }
                 }
 
-                await fetch(action.url, {
+                await fetch(url.toString(), {
                     method: action.method.toLowerCase(),
                     headers: {
                         'Content-Type': action.contentType
@@ -70,12 +76,6 @@ class HttpDevice extends Device {
                     body
                 });
             } else {
-                const url = new URL(action.url);
-
-                for (const param of action.queryParameters) {
-                    url.searchParams.append(param.name, param.value);
-                }
-
                 await fetch(url.toString(), {
                     method: action.method.toLowerCase()
                 });
