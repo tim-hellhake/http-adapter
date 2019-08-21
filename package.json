@@ -71,9 +71,31 @@
                   "DELETE"
                 ]
               },
-              "parameters": {
+              "queryParameters": {
                 "type": "array",
-                "title": "A list of parameters",
+                "title": "A list of query parameters",
+                "items": {
+                  "type": "object",
+                  "title": "A parameter",
+                  "required": [
+                    "name",
+                    "value"
+                  ],
+                  "properties": {
+                    "name": {
+                      "type": "string",
+                      "title": "The name of the parameter"
+                    },
+                    "value": {
+                      "type": "string",
+                      "title": "The value of the parameter"
+                    }
+                  }
+                }
+              },
+              "bodyParameters": {
+                "type": "array",
+                "title": "A list of body parameters",
                 "items": {
                   "type": "object",
                   "title": "A parameter",

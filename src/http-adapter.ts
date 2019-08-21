@@ -10,14 +10,15 @@ import crypto from 'crypto';
 
 import fetch from 'node-fetch';
 
-import { URLSearchParams } from 'url';
+import { URLSearchParams, URL } from 'url';
 
 interface Action {
     id: string,
     name: string,
     url: string,
     method: string,
-    parameters: Parameter[]
+    queryParameters: Parameter[],
+    bodyParameters: Parameter[]
 }
 
 interface Parameter {
@@ -37,7 +38,7 @@ class HttpDevice extends Device {
             if (action.method === 'POST' || action.method === 'PUT') {
                 const params = new URLSearchParams();
 
-                for (const param of action.parameters) {
+                for (const param of action.bodyParameters) {
                     params.append(param.name, param.value);
                 }
 
@@ -49,7 +50,13 @@ class HttpDevice extends Device {
                     body: params.toString()
                 });
             } else {
-                await fetch(`${action.url}`, {
+                const url = new URL(action.url);
+
+                for (const param of action.queryParameters) {
+                    url.searchParams.append(param.name, param.value);
+                }
+
+                await fetch(url.toString(), {
                     method: action.method.toLowerCase()
                 });
             }
