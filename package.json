@@ -43,7 +43,8 @@
             "title": "An action",
             "required": [
               "name",
-              "url"
+              "url",
+              "method"
             ],
             "properties": {
               "id": {
@@ -58,6 +59,17 @@
               "url": {
                 "type": "string",
                 "title": "The url"
+              },
+              "method": {
+                "type": "string",
+                "title": "The http method",
+                "enum": [
+                  "HEAD",
+                  "GET",
+                  "POST",
+                  "PUT",
+                  "DELETE"
+                ]
               },
               "parameters": {
                 "type": "array",

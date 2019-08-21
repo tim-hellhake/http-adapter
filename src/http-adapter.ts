@@ -14,6 +14,7 @@ interface Action {
     id: string,
     name: string,
     url: string,
+    method: string,
     parameters: Parameter[]
 }
 
@@ -31,17 +32,23 @@ class HttpDevice extends Device {
         this.name = action.name;
 
         this.addCallbackAction('invoke', 'Invoke the action', async () => {
-            const body = action.parameters
-                .map(parameter => `${parameter.name}=${encodeURIComponent(parameter.value)}`)
-                .reduce((acc, s) => `${acc}&${s}`, '');
+            if (action.method === 'POST' || action.method === 'PUT') {
+                const body = action.parameters
+                    .map(parameter => `${parameter.name}=${encodeURIComponent(parameter.value)}`)
+                    .reduce((acc, s) => `${acc}&${s}`, '');
 
-            await fetch(action.url, {
-                method: 'post',
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded'
-                },
-                body
-            });
+                await fetch(action.url, {
+                    method: action.method.toLowerCase(),
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded'
+                    },
+                    body
+                });
+            } else {
+                await fetch(`${action.url}`, {
+                    method: action.method.toLowerCase()
+                });
+            }
         });
     }
 
