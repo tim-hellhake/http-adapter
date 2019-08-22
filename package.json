@@ -2,7 +2,7 @@
   "name": "http-adapter",
   "display_name": "HTTP",
   "version": "0.3.1",
-  "description": "Let's you make http requests via actions",
+  "description": "Lets you make HTTP requests via actions",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
   "scripts": {
@@ -35,91 +35,111 @@
     "schema": {
       "type": "object",
       "properties": {
-        "actions": {
+        "devices": {
           "type": "array",
-          "title": "A list of http actions",
+          "title": "List of devices to generate",
           "items": {
             "type": "object",
-            "title": "An action",
             "required": [
-              "name",
-              "url",
-              "method",
-              "contentType"
+              "name"
             ],
             "properties": {
               "id": {
                 "type": "string",
-                "title": "The id of the action (will be generated for you)",
+                "title": "The ID of the device (will be generated for you)",
                 "readOnly": true
               },
               "name": {
                 "type": "string",
-                "title": "The name of the action"
+                "title": "The name of the device"
               },
-              "url": {
-                "type": "string",
-                "title": "The url"
-              },
-              "method": {
-                "type": "string",
-                "title": "The http method",
-                "enum": [
-                  "HEAD",
-                  "GET",
-                  "POST",
-                  "PUT",
-                  "DELETE"
-                ]
-              },
-              "contentType": {
-                "type": "string",
-                "title": "The http content-type",
-                "enum": [
-                  "application/x-www-form-urlencoded",
-                  "application/json"
-                ]
-              },
-              "queryParameters": {
+              "actions": {
                 "type": "array",
-                "title": "A list of query parameters",
+                "title": "A list of HTTP actions",
                 "items": {
                   "type": "object",
-                  "title": "A parameter",
+                  "title": "An action",
                   "required": [
                     "name",
-                    "value"
+                    "url",
+                    "method",
+                    "contentType"
                   ],
                   "properties": {
                     "name": {
                       "type": "string",
-                      "title": "The name of the parameter"
+                      "title": "The name of the action"
                     },
-                    "value": {
+                    "description": {
                       "type": "string",
-                      "title": "The value of the parameter"
-                    }
-                  }
-                }
-              },
-              "bodyParameters": {
-                "type": "array",
-                "title": "A list of body parameters",
-                "items": {
-                  "type": "object",
-                  "title": "A parameter",
-                  "required": [
-                    "name",
-                    "value"
-                  ],
-                  "properties": {
-                    "name": {
-                      "type": "string",
-                      "title": "The name of the parameter"
+                      "title": "Description of the action"
                     },
-                    "value": {
+                    "url": {
                       "type": "string",
-                      "title": "The value of the parameter"
+                      "title": "The URL"
+                    },
+                    "method": {
+                      "type": "string",
+                      "title": "The HTTP method",
+                      "enum": [
+                        "HEAD",
+                        "GET",
+                        "POST",
+                        "PUT",
+                        "DELETE"
+                      ]
+                    },
+                    "contentType": {
+                      "type": "string",
+                      "title": "The HTTP content-type",
+                      "enum": [
+                        "application/x-www-form-urlencoded",
+                        "application/json"
+                      ]
+                    },
+                    "queryParameters": {
+                      "type": "array",
+                      "title": "A list of query parameters",
+                      "items": {
+                        "type": "object",
+                        "title": "A parameter",
+                        "required": [
+                          "name",
+                          "value"
+                        ],
+                        "properties": {
+                          "name": {
+                            "type": "string",
+                            "title": "The name of the parameter"
+                          },
+                          "value": {
+                            "type": "string",
+                            "title": "The value of the parameter"
+                          }
+                        }
+                      }
+                    },
+                    "bodyParameters": {
+                      "type": "array",
+                      "title": "A list of body parameters",
+                      "items": {
+                        "type": "object",
+                        "title": "A parameter",
+                        "required": [
+                          "name",
+                          "value"
+                        ],
+                        "properties": {
+                          "name": {
+                            "type": "string",
+                            "title": "The name of the parameter"
+                          },
+                          "value": {
+                            "type": "string",
+                            "title": "The value of the parameter"
+                          }
+                        }
+                      }
                     }
                   }
                 }
