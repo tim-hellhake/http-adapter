@@ -1,2 +1,4 @@
-node_modules
+*.sha256sum
+*.tgz
 lib
+node_modules

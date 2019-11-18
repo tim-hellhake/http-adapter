@@ -12,9 +12,15 @@ import fetch from 'node-fetch';
 
 import { URLSearchParams, URL } from 'url';
 
-interface Action {
+interface DeviceTemplate {
     id: string,
     name: string,
+    actions: Action[]
+}
+
+interface Action {
+    name: string,
+    description: string,
     url: string,
     method: string,
     contentType: string,
@@ -30,57 +36,59 @@ interface Parameter {
 class HttpDevice extends Device {
     private callbacks: { [name: string]: () => void } = {};
 
-    constructor(adapter: any, action: Action) {
-        super(adapter, action.id);
+    constructor(adapter: any, device: DeviceTemplate) {
+        super(adapter, device.id);
         this['@context'] = 'https://iot.mozilla.org/schemas/';
-        this.name = action.name;
+        this.name = device.name;
 
-        this.addCallbackAction('invoke', 'Invoke the action', async () => {
-            const url = new URL(action.url);
+        for (const action of device.actions) {
+            this.addCallbackAction(action.name, action.description, async () => {
+                const url = new URL(action.url);
 
-            for (const param of action.queryParameters) {
-                url.searchParams.append(param.name, param.value);
-            }
-
-            if (action.method === 'POST' || action.method === 'PUT') {
-                let body = '';
-
-                switch (action.contentType) {
-                    case 'application/x-www-form-urlencoded': {
-                        const params = new URLSearchParams();
-
-                        for (const param of action.bodyParameters) {
-                            params.append(param.name, param.value);
-                        }
-
-                        body = params.toString();
-                        break;
-                    }
-                    case 'application/json': {
-                        const obj: any = {};
-
-                        for (const param of action.bodyParameters) {
-                            obj[param.name] = param.value;
-                        }
-
-                        body = JSON.stringify(obj);
-                        break;
-                    }
+                for (const param of action.queryParameters) {
+                    url.searchParams.append(param.name, param.value);
                 }
 
-                await fetch(url.toString(), {
-                    method: action.method.toLowerCase(),
-                    headers: {
-                        'Content-Type': action.contentType
-                    },
-                    body
-                });
-            } else {
-                await fetch(url.toString(), {
-                    method: action.method.toLowerCase()
-                });
-            }
-        });
+                if (action.method === 'POST' || action.method === 'PUT') {
+                    let body = '';
+
+                    switch (action.contentType) {
+                        case 'application/x-www-form-urlencoded': {
+                            const params = new URLSearchParams();
+
+                            for (const param of action.bodyParameters) {
+                                params.append(param.name, param.value);
+                            }
+
+                            body = params.toString();
+                            break;
+                        }
+                        case 'application/json': {
+                            const obj: any = {};
+
+                            for (const param of action.bodyParameters) {
+                                obj[param.name] = param.value;
+                            }
+
+                            body = JSON.stringify(obj);
+                            break;
+                        }
+                    }
+
+                    await fetch(url.toString(), {
+                        method: action.method.toLowerCase(),
+                        headers: {
+                            'Content-Type': action.contentType
+                        },
+                        body
+                    });
+                } else {
+                    await fetch(url.toString(), {
+                        method: action.method.toLowerCase()
+                    });
+                }
+            });
+        }
     }
 
     addCallbackAction(title: string, description: string, callback: () => void) {
@@ -114,36 +122,63 @@ export class HttpAdapter extends Adapter {
         super(addonManager, HttpAdapter.name, manifest.name);
         this.database = new Database(manifest.name)
         addonManager.addAdapter(this);
-        this.createActions();
+        this.createDevices();
     }
 
-    private async createActions() {
-        const actions = await this.loadActions();
+    private async createDevices() {
+        const devices = await this.loadDevices();
 
-        if (actions) {
-            for (const action of actions) {
-                const http = new HttpDevice(this, action);
+        if (devices) {
+            for (const device of devices) {
+                const http = new HttpDevice(this, device);
                 this.handleDeviceAdded(http);
             }
         }
     }
 
-    private async loadActions() {
+    private async loadDevices() {
         await this.database.open();
         const config = await this.database.loadConfig();
-        const {
-            actions
+        let {
+            actions,
+            devices,
         } = config;
 
+        // Transition old schema to new
         if (actions) {
+            if (!devices) {
+                devices = [];
+            }
+
             for (const action of actions) {
                 if (!action.id) {
                     action.id = crypto.randomBytes(16).toString("hex");
                 }
+
+                const device = {
+                    id: action.id,
+                    name: action.name,
+                    actions: [
+                        {
+                            name: 'invoke',
+                            description: 'Invoke the action',
+                            url: action.url,
+                            method: action.method,
+                            contentType: action.contentType,
+                            queryParameters: action.queryParameters,
+                            bodyParameters: action.bodyParameters,
+                        },
+                    ],
+                };
+
+                devices.push(device);
             }
         }
 
+        delete config.actions;
+        config.devices = devices;
+
         await this.database.saveConfig(config);
-        return actions;
+        return devices;
     }
 }
