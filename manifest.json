@@ -1,38 +1,22 @@
 {
-  "name": "http-adapter",
-  "display_name": "HTTP",
+  "manifest_version": 1,
+  "id": "http-adapter",
+  "name": "HTTP",
+  "short_name": "HTTP",
   "version": "0.3.1",
   "description": "Lets you make HTTP requests via actions",
-  "main": "lib/index.js",
-  "types": "lib/index.d.ts",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "tsc -p ."
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/tim-hellhake/http-adapter.git"
-  },
-  "author": "Tim Hellhake",
+  "homepage_url": "https://github.com/tim-hellhake/http-adapter#readme",
   "license": "MPL-2.0",
-  "bugs": {
-    "url": "https://github.com/tim-hellhake/http-adapter/issues"
+  "author": "Tim Hellhake",
+  "gateway_specific_settings": {
+    "webthings": {
+      "exec": "{nodeLoader} {path}",
+      "strict_min_version": "0.10.0",
+      "strict_max_version": "*",
+      "primary_type": "adapter"
+    }
   },
-  "homepage": "https://github.com/tim-hellhake/http-adapter#readme",
-  "files": [
-    "LICENSE",
-    "SHA256SUMS",
-    "manifest.json",
-    "lib/index.js",
-    "lib/http-adapter.js"
-  ],
-  "moziot": {
-    "api": {
-      "min": 2,
-      "max": 2
-    },
-    "plugin": true,
-    "exec": "{nodeLoader} {path}",
+  "options": {
     "schema": {
       "type": "object",
       "properties": {
@@ -150,13 +134,5 @@
         }
       }
     }
-  },
-  "dependencies": {
-    "node-fetch": "^2.6.0"
-  },
-  "devDependencies": {
-    "@types/node": "^12.12.8",
-    "@types/node-fetch": "^2.5.3",
-    "typescript": "^3.7.2"
   }
 }
