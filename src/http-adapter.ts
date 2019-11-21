@@ -12,6 +12,11 @@ import fetch from 'node-fetch';
 
 import { URLSearchParams, URL } from 'url';
 
+interface Config {
+    actions: LegacyAction[],
+    devices: DeviceTemplate[]
+}
+
 interface DeviceTemplate {
     id: string,
     name: string,
@@ -26,6 +31,10 @@ interface Action {
     contentType: string,
     queryParameters: Parameter[],
     bodyParameters: Parameter[]
+}
+
+interface LegacyAction extends Action {
+    id: string
 }
 
 interface Parameter {
@@ -138,24 +147,22 @@ export class HttpAdapter extends Adapter {
 
     private async loadDevices() {
         await this.database.open();
-        const config = await this.database.loadConfig();
+        const config: Config = await this.database.loadConfig();
         let {
             actions,
-            devices,
+            devices
         } = config;
+
+        if (!devices) {
+            devices = [];
+        }
 
         // Transition old schema to new
         if (actions) {
-            if (!devices) {
-                devices = [];
-            }
+            console.log('Migrate from old schema');
 
             for (const action of actions) {
-                if (!action.id) {
-                    action.id = crypto.randomBytes(16).toString("hex");
-                }
-
-                const device = {
+                const device: DeviceTemplate = {
                     id: action.id,
                     name: action.name,
                     actions: [
@@ -173,12 +180,20 @@ export class HttpAdapter extends Adapter {
 
                 devices.push(device);
             }
+
+            delete config.actions;
+            config.devices = devices;
         }
 
-        delete config.actions;
-        config.devices = devices;
+        for (let device of devices) {
+            if (!device.id) {
+                device.id = `http-${crypto.randomBytes(16).toString("hex")}`;
+                console.log(`Generated id ${device.id} for ${device.name}`);
+            }
+        }
 
         await this.database.saveConfig(config);
+
         return devices;
     }
 }
