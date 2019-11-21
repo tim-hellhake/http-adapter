@@ -13,14 +13,14 @@ import fetch from 'node-fetch';
 import { URLSearchParams, URL } from 'url';
 
 interface Config {
-    actions: LegacyAction[],
-    devices: DeviceTemplate[]
+    actions?: LegacyAction[],
+    devices?: DeviceTemplate[]
 }
 
 interface DeviceTemplate {
     id: string,
     name: string,
-    actions: Action[]
+    actions?: Action[]
 }
 
 interface Action {
@@ -29,8 +29,8 @@ interface Action {
     url: string,
     method: string,
     contentType: string,
-    queryParameters: Parameter[],
-    bodyParameters: Parameter[]
+    queryParameters?: Parameter[],
+    bodyParameters?: Parameter[]
 }
 
 interface LegacyAction extends Action {
@@ -50,53 +50,62 @@ class HttpDevice extends Device {
         this['@context'] = 'https://iot.mozilla.org/schemas/';
         this.name = device.name;
 
-        for (const action of device.actions) {
-            this.addCallbackAction(action.name, action.description, async () => {
-                const url = new URL(action.url);
+        if (device.actions) {
+            for (const action of device.actions) {
+                this.addCallbackAction(action.name, action.description, async () => {
+                    console.log(`url: ${action.url}`);
+                    const url = new URL(action.url);
 
-                for (const param of action.queryParameters) {
-                    url.searchParams.append(param.name, param.value);
-                }
-
-                if (action.method === 'POST' || action.method === 'PUT') {
-                    let body = '';
-
-                    switch (action.contentType) {
-                        case 'application/x-www-form-urlencoded': {
-                            const params = new URLSearchParams();
-
-                            for (const param of action.bodyParameters) {
-                                params.append(param.name, param.value);
-                            }
-
-                            body = params.toString();
-                            break;
-                        }
-                        case 'application/json': {
-                            const obj: any = {};
-
-                            for (const param of action.bodyParameters) {
-                                obj[param.name] = param.value;
-                            }
-
-                            body = JSON.stringify(obj);
-                            break;
+                    if (action.queryParameters) {
+                        for (const param of action.queryParameters) {
+                            url.searchParams.append(param.name, param.value);
                         }
                     }
 
-                    await fetch(url.toString(), {
-                        method: action.method.toLowerCase(),
-                        headers: {
-                            'Content-Type': action.contentType
-                        },
-                        body
-                    });
-                } else {
-                    await fetch(url.toString(), {
-                        method: action.method.toLowerCase()
-                    });
-                }
-            });
+                    if (action.method === 'POST' || action.method === 'PUT') {
+                        let body = '';
+
+                        switch (action.contentType) {
+                            case 'application/x-www-form-urlencoded': {
+                                const params = new URLSearchParams();
+
+                                if (action.bodyParameters) {
+                                    for (const param of action.bodyParameters) {
+                                        params.append(param.name, param.value);
+                                    }
+                                }
+
+                                body = params.toString();
+                                break;
+                            }
+                            case 'application/json': {
+                                const obj: any = {};
+
+                                if (action.bodyParameters) {
+                                    for (const param of action.bodyParameters) {
+                                        obj[param.name] = param.value;
+                                    }
+                                }
+
+                                body = JSON.stringify(obj);
+                                break;
+                            }
+                        }
+
+                        await fetch(url.toString(), {
+                            method: action.method.toLowerCase(),
+                            headers: {
+                                'Content-Type': action.contentType
+                            },
+                            body
+                        });
+                    } else {
+                        await fetch(url.toString(), {
+                            method: action.method.toLowerCase()
+                        });
+                    }
+                });
+            }
         }
     }
 
