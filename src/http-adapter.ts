@@ -92,17 +92,21 @@ class HttpDevice extends Device {
                             }
                         }
 
-                        await fetch(url.toString(), {
+                        const result = await fetch(url.toString(), {
                             method: action.method.toLowerCase(),
                             headers: {
                                 'Content-Type': action.contentType
                             },
                             body
                         });
+
+                        console.log(`Server responded with ${result.status}: ${result.statusText}`);
                     } else {
-                        await fetch(url.toString(), {
+                        const result = await fetch(url.toString(), {
                             method: action.method.toLowerCase()
                         });
+
+                        console.log(`Server responded with ${result.status}: ${result.statusText}`);
                     }
                 });
             }
