@@ -4,7 +4,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.*
  */
 
-import { Adapter, Device, Database } from 'gateway-addon';
+import { Adapter, Device, Database, Property } from 'gateway-addon';
 
 import crypto from 'crypto';
 
@@ -20,7 +20,8 @@ interface Config {
 interface DeviceTemplate {
     id: string,
     name: string,
-    actions?: Action[]
+    actions?: Action[],
+    properties?: PropertyInfos[]
 }
 
 interface Action {
@@ -33,6 +34,17 @@ interface Action {
     bodyParameters?: Parameter[]
 }
 
+interface PropertyInfos {
+    name: string,
+    description: string,
+    url: string,
+    method: string,
+    contentType: string,
+    queryParameters?: Parameter[],
+    bodyParameters?: Parameter[],
+    pollInterval: number
+}
+
 interface LegacyAction extends Action {
     id: string
 }
@@ -40,6 +52,76 @@ interface LegacyAction extends Action {
 interface Parameter {
     name: string,
     value: string
+}
+
+class HttpProperty extends Property {
+    constructor(device: HttpDevice, property: PropertyInfos) {
+        super(device, property.name, {
+            title: property.name,
+            type: 'string'
+        });
+
+        setInterval(async () => {
+            const url = new URL(property.url);
+
+            if (property.queryParameters) {
+                for (const param of property.queryParameters) {
+                    url.searchParams.append(param.name, param.value);
+                }
+            }
+
+            if (property.method === 'POST' || property.method === 'PUT') {
+                let body = '';
+
+                switch (property.contentType) {
+                    case 'application/x-www-form-urlencoded': {
+                        const params = new URLSearchParams();
+
+                        if (property.bodyParameters) {
+                            for (const param of property.bodyParameters) {
+                                params.append(param.name, param.value);
+                            }
+                        }
+
+                        body = params.toString();
+                        break;
+                    }
+                    case 'application/json': {
+                        const obj: any = {};
+
+                        if (property.bodyParameters) {
+                            for (const param of property.bodyParameters) {
+                                obj[param.name] = param.value;
+                            }
+                        }
+
+                        body = JSON.stringify(obj);
+                        break;
+                    }
+                }
+
+                const result = await fetch(url.toString(), {
+                    method: property.method.toLowerCase(),
+                    headers: {
+                        'Content-Type': property.contentType
+                    },
+                    body
+                });
+
+                console.log(`Server responded with ${result.status}: ${result.statusText}`);
+                const response = await result.text();
+                this.setCachedValueAndNotify(response);
+            } else {
+                const result = await fetch(url.toString(), {
+                    method: property.method.toLowerCase()
+                });
+
+                console.log(`Server responded with ${result.status}: ${result.statusText}`);
+                const response = await result.text();
+                this.setCachedValueAndNotify(response);
+            }
+        }, (property.pollInterval ?? 1) * 1000)
+    }
 }
 
 class HttpDevice extends Device {
@@ -109,6 +191,13 @@ class HttpDevice extends Device {
                         console.log(`Server responded with ${result.status}: ${result.statusText}`);
                     }
                 });
+            }
+        }
+
+        if (device.properties) {
+            for (const property of device.properties) {
+                const httpProperty = new HttpProperty(this, property);
+                this.properties.set(httpProperty.name, httpProperty);
             }
         }
     }

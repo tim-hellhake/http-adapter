@@ -128,6 +128,101 @@
                     }
                   }
                 }
+              },
+              "properties": {
+                "type": "array",
+                "title": "A list of HTTP properties",
+                "items": {
+                  "type": "object",
+                  "title": "An action",
+                  "required": [
+                    "name",
+                    "url",
+                    "method",
+                    "contentType"
+                  ],
+                  "properties": {
+                    "name": {
+                      "type": "string",
+                      "title": "The name of the property"
+                    },
+                    "description": {
+                      "type": "string",
+                      "title": "Description of the property"
+                    },
+                    "url": {
+                      "type": "string",
+                      "title": "The URL"
+                    },
+                    "method": {
+                      "type": "string",
+                      "title": "The HTTP method",
+                      "enum": [
+                        "HEAD",
+                        "GET",
+                        "POST",
+                        "PUT",
+                        "DELETE"
+                      ]
+                    },
+                    "contentType": {
+                      "type": "string",
+                      "title": "The HTTP content-type",
+                      "enum": [
+                        "application/x-www-form-urlencoded",
+                        "application/json"
+                      ]
+                    },
+                    "queryParameters": {
+                      "type": "array",
+                      "title": "A list of query parameters",
+                      "items": {
+                        "type": "object",
+                        "title": "A parameter",
+                        "required": [
+                          "name",
+                          "value"
+                        ],
+                        "properties": {
+                          "name": {
+                            "type": "string",
+                            "title": "The name of the parameter"
+                          },
+                          "value": {
+                            "type": "string",
+                            "title": "The value of the parameter"
+                          }
+                        }
+                      }
+                    },
+                    "bodyParameters": {
+                      "type": "array",
+                      "title": "A list of body parameters",
+                      "items": {
+                        "type": "object",
+                        "title": "A parameter",
+                        "required": [
+                          "name",
+                          "value"
+                        ],
+                        "properties": {
+                          "name": {
+                            "type": "string",
+                            "title": "The name of the parameter"
+                          },
+                          "value": {
+                            "type": "string",
+                            "title": "The value of the parameter"
+                          }
+                        }
+                      }
+                    },
+                    "pollInterval": {
+                      "type": "number",
+                      "title": "The time in seconds between two poll requests"
+                    }
+                  }
+                }
               }
             }
           }
