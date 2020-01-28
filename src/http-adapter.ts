@@ -8,9 +8,71 @@ import { Adapter, Device, Database, Property } from 'gateway-addon';
 
 import crypto from 'crypto';
 
-import fetch from 'node-fetch';
+import fetch, { Response } from 'node-fetch';
 
 import { URLSearchParams, URL } from 'url';
+
+async function execute(info: Action | PropertyInfos): Promise<Response> {
+    console.log(`url: ${info.url}`);
+    const url = new URL(info.url);
+
+    if (info.queryParameters) {
+        for (const param of info.queryParameters) {
+            url.searchParams.append(param.name, param.value);
+        }
+    }
+
+    if (info.method === 'POST' || info.method === 'PUT') {
+        let body = '';
+
+        switch (info.contentType) {
+            case 'application/x-www-form-urlencoded': {
+                const params = new URLSearchParams();
+
+                if (info.bodyParameters) {
+                    for (const param of info.bodyParameters) {
+                        params.append(param.name, param.value);
+                    }
+                }
+
+                body = params.toString();
+                break;
+            }
+            case 'application/json': {
+                const obj: any = {};
+
+                if (info.bodyParameters) {
+                    for (const param of info.bodyParameters) {
+                        obj[param.name] = param.value;
+                    }
+                }
+
+                body = JSON.stringify(obj);
+                break;
+            }
+        }
+
+        const result = await fetch(url.toString(), {
+            method: info.method.toLowerCase(),
+            headers: {
+                'Content-Type': info.contentType
+            },
+            body
+        });
+
+        console.log(`Server responded with ${result.status}: ${result.statusText}`);
+
+        return result;
+    } else {
+        const result = await fetch(url.toString(), {
+            method: info.method.toLowerCase()
+        });
+
+        console.log(`Server responded with ${result.status}: ${result.statusText}`);
+
+        return result;
+    }
+}
 
 interface Config {
     actions?: LegacyAction[],
@@ -62,64 +124,8 @@ class HttpProperty extends Property {
         });
 
         setInterval(async () => {
-            const url = new URL(property.url);
-
-            if (property.queryParameters) {
-                for (const param of property.queryParameters) {
-                    url.searchParams.append(param.name, param.value);
-                }
-            }
-
-            if (property.method === 'POST' || property.method === 'PUT') {
-                let body = '';
-
-                switch (property.contentType) {
-                    case 'application/x-www-form-urlencoded': {
-                        const params = new URLSearchParams();
-
-                        if (property.bodyParameters) {
-                            for (const param of property.bodyParameters) {
-                                params.append(param.name, param.value);
-                            }
-                        }
-
-                        body = params.toString();
-                        break;
-                    }
-                    case 'application/json': {
-                        const obj: any = {};
-
-                        if (property.bodyParameters) {
-                            for (const param of property.bodyParameters) {
-                                obj[param.name] = param.value;
-                            }
-                        }
-
-                        body = JSON.stringify(obj);
-                        break;
-                    }
-                }
-
-                const result = await fetch(url.toString(), {
-                    method: property.method.toLowerCase(),
-                    headers: {
-                        'Content-Type': property.contentType
-                    },
-                    body
-                });
-
-                console.log(`Server responded with ${result.status}: ${result.statusText}`);
-                const response = await result.text();
-                this.setCachedValueAndNotify(response);
-            } else {
-                const result = await fetch(url.toString(), {
-                    method: property.method.toLowerCase()
-                });
-
-                console.log(`Server responded with ${result.status}: ${result.statusText}`);
-                const response = await result.text();
-                this.setCachedValueAndNotify(response);
-            }
+            const response = await execute(property);
+            this.setCachedValueAndNotify(response.text);
         }, (property.pollInterval ?? 1) * 1000)
     }
 }
@@ -135,61 +141,7 @@ class HttpDevice extends Device {
         if (device.actions) {
             for (const action of device.actions) {
                 this.addCallbackAction(action.name, action.description, async () => {
-                    console.log(`url: ${action.url}`);
-                    const url = new URL(action.url);
-
-                    if (action.queryParameters) {
-                        for (const param of action.queryParameters) {
-                            url.searchParams.append(param.name, param.value);
-                        }
-                    }
-
-                    if (action.method === 'POST' || action.method === 'PUT') {
-                        let body = '';
-
-                        switch (action.contentType) {
-                            case 'application/x-www-form-urlencoded': {
-                                const params = new URLSearchParams();
-
-                                if (action.bodyParameters) {
-                                    for (const param of action.bodyParameters) {
-                                        params.append(param.name, param.value);
-                                    }
-                                }
-
-                                body = params.toString();
-                                break;
-                            }
-                            case 'application/json': {
-                                const obj: any = {};
-
-                                if (action.bodyParameters) {
-                                    for (const param of action.bodyParameters) {
-                                        obj[param.name] = param.value;
-                                    }
-                                }
-
-                                body = JSON.stringify(obj);
-                                break;
-                            }
-                        }
-
-                        const result = await fetch(url.toString(), {
-                            method: action.method.toLowerCase(),
-                            headers: {
-                                'Content-Type': action.contentType
-                            },
-                            body
-                        });
-
-                        console.log(`Server responded with ${result.status}: ${result.statusText}`);
-                    } else {
-                        const result = await fetch(url.toString(), {
-                            method: action.method.toLowerCase()
-                        });
-
-                        console.log(`Server responded with ${result.status}: ${result.statusText}`);
-                    }
+                    execute(action);
                 });
             }
         }
