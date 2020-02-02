@@ -13,7 +13,7 @@ import fetch, { Response } from 'node-fetch';
 import { URLSearchParams, URL } from 'url';
 
 async function execute(info: Action | PropertyInfos): Promise<Response> {
-    console.log(`url: ${info.url}`);
+    verbose(`url: ${info.url}`);
     const url = new URL(info.url);
 
     if (info.queryParameters) {
@@ -60,7 +60,7 @@ async function execute(info: Action | PropertyInfos): Promise<Response> {
             body
         });
 
-        console.log(`Server responded with ${result.status}: ${result.statusText}`);
+        verbose(`Server responded with ${result.status}: ${result.statusText}`);
 
         return result;
     } else {
@@ -68,13 +68,16 @@ async function execute(info: Action | PropertyInfos): Promise<Response> {
             method: info.method.toLowerCase()
         });
 
-        console.log(`Server responded with ${result.status}: ${result.statusText}`);
+        verbose(`Server responded with ${result.status}: ${result.statusText}`);
 
         return result;
     }
 }
 
+let verbose: (message?: any, ...optionalParams: any[]) => void
+
 interface Config {
+    debug: boolean,
     actions?: LegacyAction[],
     devices?: DeviceTemplate[]
 }
@@ -203,9 +206,16 @@ export class HttpAdapter extends Adapter {
         await this.database.open();
         const config: Config = await this.database.loadConfig();
         let {
+            debug,
             actions,
             devices
         } = config;
+
+        if (debug) {
+            verbose = console.log;
+        } else {
+            verbose = () => { };
+        }
 
         if (!devices) {
             devices = [];

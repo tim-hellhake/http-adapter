@@ -36,6 +36,10 @@
     "schema": {
       "type": "object",
       "properties": {
+        "debug": {
+          "type": "boolean",
+          "title": "Enable debug logging"
+        },
         "devices": {
           "type": "array",
           "title": "List of devices to generate",
