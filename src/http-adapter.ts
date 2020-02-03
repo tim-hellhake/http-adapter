@@ -8,7 +8,7 @@ import { Adapter, Device, Database, Property } from 'gateway-addon';
 
 import crypto from 'crypto';
 
-import fetch, { Response } from 'node-fetch';
+import fetch, { RequestInit, Response } from 'node-fetch';
 
 import { URLSearchParams, URL } from 'url';
 
@@ -22,8 +22,12 @@ async function execute(info: Action | PropertyInfos): Promise<Response> {
         }
     }
 
+    const additionalOptions: RequestInit = {}
+
     if (info.method === 'POST' || info.method === 'PUT') {
-        let body = '';
+        additionalOptions.headers = {
+            'Content-Type': info.contentType
+        };
 
         switch (info.contentType) {
             case 'application/x-www-form-urlencoded': {
@@ -35,7 +39,7 @@ async function execute(info: Action | PropertyInfos): Promise<Response> {
                     }
                 }
 
-                body = params.toString();
+                additionalOptions.body = params.toString();
                 break;
             }
             case 'application/json': {
@@ -47,31 +51,20 @@ async function execute(info: Action | PropertyInfos): Promise<Response> {
                     }
                 }
 
-                body = JSON.stringify(obj);
+                additionalOptions.body = JSON.stringify(obj);
                 break;
             }
         }
-
-        const result = await fetch(url.toString(), {
-            method: info.method.toLowerCase(),
-            headers: {
-                'Content-Type': info.contentType
-            },
-            body
-        });
-
-        verbose(`Server responded with ${result.status}: ${result.statusText}`);
-
-        return result;
-    } else {
-        const result = await fetch(url.toString(), {
-            method: info.method.toLowerCase()
-        });
-
-        verbose(`Server responded with ${result.status}: ${result.statusText}`);
-
-        return result;
     }
+
+    const result = await fetch(url.toString(), {
+        method: info.method.toLowerCase(),
+        ...additionalOptions
+    });
+
+    verbose(`Server responded with ${result.status}: ${result.statusText}`);
+
+    return result;
 }
 
 let verbose: (message?: any, ...optionalParams: any[]) => void
