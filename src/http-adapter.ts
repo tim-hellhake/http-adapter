@@ -57,12 +57,16 @@ async function execute(info: Action | PropertyInfos): Promise<Response> {
         }
     }
 
+    const start = new Date().getTime();
+
     const result = await fetch(url.toString(), {
         method: info.method.toLowerCase(),
         ...additionalOptions
     });
 
-    verbose(`Server responded with ${result.status}: ${result.statusText}`);
+    const diff = new Date().getTime() - start;
+
+    verbose(`Server responded with ${result.status}: ${result.statusText} in ${diff} ms`);
 
     return result;
 }
