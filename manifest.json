@@ -221,6 +221,16 @@
                         }
                       }
                     },
+                    "responseType": {
+                      "type": "string",
+                      "title": "The type of the response",
+                      "enum": [
+                        "string",
+                        "number",
+                        "integer",
+                        "boolean"
+                      ]
+                    },
                     "pollInterval": {
                       "type": "number",
                       "title": "The time in seconds between two poll requests"

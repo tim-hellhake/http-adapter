@@ -104,6 +104,12 @@ interface PropertyInfos {
     contentType: string,
     queryParameters?: Parameter[],
     bodyParameters?: Parameter[],
+    responseType?: [
+        'string',
+        'number',
+        'integer',
+        'boolean'
+    ]
     pollInterval: number
 }
 
@@ -120,12 +126,27 @@ class HttpProperty extends Property {
     constructor(device: HttpDevice, property: PropertyInfos) {
         super(device, property.name, {
             title: property.name,
-            type: 'string'
+            type: property.responseType ?? 'string'
         });
 
         setInterval(async () => {
             const response = await execute(property);
-            this.setCachedValueAndNotify(response.text);
+            const text = await response.text();
+            let value: any = text;
+
+            switch (this.type) {
+                case 'number':
+                    value = parseFloat(value);
+                    break;
+                case 'integer':
+                    value = parseInt(value);
+                    break;
+                case 'boolean':
+                    value = !!value;
+                    break;
+            }
+
+            this.setCachedValueAndNotify(value);
         }, (property.pollInterval ?? 1) * 1000)
     }
 }
