@@ -6,6 +6,7 @@
 
 declare module 'gateway-addon' {
     class Property {
+        protected '@type': string;
         public name: string;
         protected title: string;
         protected type: string;

@@ -42,6 +42,39 @@
                 "type": "string",
                 "title": "The name of the device"
               },
+              "types": {
+                "type": "array",
+                "title": "The list of capabilities of the device",
+                "items": {
+                  "type": "string",
+                  "title": "One of the capabilities of the device (https://iot.mozilla.org/schemas)",
+                  "enum": [
+                    "Alarm",
+                    "AirQualitySensor",
+                    "BarometricPressureSensor",
+                    "BinarySensor",
+                    "Camera",
+                    "ColorControl",
+                    "ColorSensor",
+                    "DoorSensor",
+                    "EnergyMonitor",
+                    "HumiditySensor",
+                    "LeakSensor",
+                    "Light",
+                    "Lock",
+                    "MotionSensor",
+                    "MultiLevelSensor",
+                    "MultiLevelSwitch",
+                    "OnOffSwitch",
+                    "PushButton",
+                    "SmartPlug",
+                    "SmokeSensor",
+                    "TemperatureSensor",
+                    "Thermostat",
+                    "VideoCamera"
+                  ]
+                }
+              },
               "actions": {
                 "type": "array",
                 "title": "A list of HTTP actions",
@@ -62,6 +95,16 @@
                     "description": {
                       "type": "string",
                       "title": "Description of the action"
+                    },
+                    "type": {
+                      "type": "string",
+                      "title": "The type of the action (https://iot.mozilla.org/schemas/#capabilities)",
+                      "enum": [
+                        "FadeAction",
+                        "LockAction",
+                        "ToggleAction",
+                        "UnlockAction"
+                      ]
                     },
                     "url": {
                       "type": "string",
@@ -153,6 +196,41 @@
                     "description": {
                       "type": "string",
                       "title": "Description of the property"
+                    },
+                    "type": {
+                      "type": "string",
+                      "title": "The type of the property (https://iot.mozilla.org/schemas/#capabilities)",
+                      "enum": [
+                        "AlarmProperty",
+                        "BarometricPressureProperty",
+                        "BooleanProperty",
+                        "BrightnessProperty",
+                        "ColorModeProperty",
+                        "ColorProperty",
+                        "ColorTemperatureProperty",
+                        "ConcentrationProperty",
+                        "CurrentProperty",
+                        "DensityProperty",
+                        "FrequencyProperty",
+                        "HeatingCoolingProperty",
+                        "HumidityProperty",
+                        "ImageProperty",
+                        "InstantaneousPowerFactorProperty",
+                        "InstantaneousPowerProperty",
+                        "LeakProperty",
+                        "LevelProperty",
+                        "LockedProperty",
+                        "MotionProperty",
+                        "OnOffProperty",
+                        "OpenProperty",
+                        "PushedProperty",
+                        "SmokeProperty",
+                        "TargetTemperatureProperty",
+                        "TemperatureProperty",
+                        "ThermostatModeProperty",
+                        "VideoProperty",
+                        "VoltageProperty"
+                      ]
                     },
                     "url": {
                       "type": "string",

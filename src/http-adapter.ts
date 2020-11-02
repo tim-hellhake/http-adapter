@@ -19,6 +19,7 @@ import {
     AProperty,
     Config,
     TheIDOfTheDeviceWillBeGeneratedForYou,
+    TheListOfCapabilitiesOfTheDevice,
     TheNameOfTheDevice
 } from './config';
 
@@ -84,6 +85,7 @@ async function execute(info: AnAction | AProperty): Promise<Response> {
 interface DeviceTemplate {
     id?: TheIDOfTheDeviceWillBeGeneratedForYou;
     name: TheNameOfTheDevice;
+    types?: TheListOfCapabilitiesOfTheDevice;
     actions?: AListOfHTTPActions;
     properties?: AListOfHTTPProperties;
 }
@@ -96,6 +98,10 @@ class HttpProperty extends Property {
             title: property.name,
             type: property.responseType ?? 'string'
         });
+
+        if (property.type) {
+            this['@type'] = property.type;
+        }
 
         setInterval(async () => {
             const response = await execute(property);
@@ -125,13 +131,12 @@ class HttpDevice extends Device {
     constructor(adapter: any, device: DeviceTemplate) {
         super(adapter, <string>device.id);
         this['@context'] = 'https://iot.mozilla.org/schemas/';
+        this['@type'] = device.types ?? [];
         this.name = device.name;
 
         if (device.actions) {
             for (const action of device.actions) {
-                this.addCallbackAction(action.name, action.description ?? '', async () => {
-                    execute(action);
-                });
+                this.addCallbackAction(action, async () => execute(action));
             }
         }
 
@@ -143,13 +148,29 @@ class HttpDevice extends Device {
         }
     }
 
-    addCallbackAction(title: string, description: string, callback: () => void) {
-        this.addAction(title, {
-            title,
+    addCallbackAction(action: AnAction, callback: () => void) {
+        const additionalProperties: Record<string, unknown> = {};
+
+        const {
+            type,
+            name,
             description
+        } = action;
+
+        if (type) {
+            additionalProperties['@type'] = type;
+        }
+
+        if (description) {
+            additionalProperties.description = description;
+        }
+
+        this.addAction(name, {
+            title: name,
+            ...additionalProperties
         });
 
-        this.callbacks[title] = callback;
+        this.callbacks[name] = callback;
     }
 
     async performAction(action: any) {
