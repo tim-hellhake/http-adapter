@@ -19,7 +19,7 @@ declare module 'gateway-addon' {
     class Device {
         protected '@context': string;
         protected '@type': string[];
-        protected name: string;
+        protected title: string;
         protected description: string;
 
         constructor(adapter: Adapter, id: string);

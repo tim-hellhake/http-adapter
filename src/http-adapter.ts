@@ -132,7 +132,7 @@ class HttpDevice extends Device {
         super(adapter, <string>device.id);
         this['@context'] = 'https://iot.mozilla.org/schemas/';
         this['@type'] = device.types ?? [];
-        this.name = device.name;
+        this.title = device.name;
 
         if (device.actions) {
             for (const action of device.actions) {
