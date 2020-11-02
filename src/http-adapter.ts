@@ -12,7 +12,17 @@ import fetch, { RequestInit, Response } from 'node-fetch';
 
 import { URLSearchParams, URL } from 'url';
 
-async function execute(info: Action | PropertyInfos): Promise<Response> {
+import {
+    AListOfHTTPActions,
+    AListOfHTTPProperties,
+    AnAction,
+    AProperty,
+    Config,
+    TheIDOfTheDeviceWillBeGeneratedForYou,
+    TheNameOfTheDevice
+} from './config';
+
+async function execute(info: AnAction | AProperty): Promise<Response> {
     verbose(`url: ${info.url}`);
     const url = new URL(info.url);
 
@@ -71,59 +81,17 @@ async function execute(info: Action | PropertyInfos): Promise<Response> {
     return result;
 }
 
+interface DeviceTemplate {
+    id?: TheIDOfTheDeviceWillBeGeneratedForYou;
+    name: TheNameOfTheDevice;
+    actions?: AListOfHTTPActions;
+    properties?: AListOfHTTPProperties;
+}
+
 let verbose: (message?: any, ...optionalParams: any[]) => void
 
-interface Config {
-    debug: boolean,
-    actions?: LegacyAction[],
-    devices?: DeviceTemplate[]
-}
-
-interface DeviceTemplate {
-    id: string,
-    name: string,
-    actions?: Action[],
-    properties?: PropertyInfos[]
-}
-
-interface Action {
-    name: string,
-    description: string,
-    url: string,
-    method: string,
-    contentType: string,
-    queryParameters?: Parameter[],
-    bodyParameters?: Parameter[]
-}
-
-interface PropertyInfos {
-    name: string,
-    description: string,
-    url: string,
-    method: string,
-    contentType: string,
-    queryParameters?: Parameter[],
-    bodyParameters?: Parameter[],
-    responseType?: [
-        'string',
-        'number',
-        'integer',
-        'boolean'
-    ]
-    pollInterval: number
-}
-
-interface LegacyAction extends Action {
-    id: string
-}
-
-interface Parameter {
-    name: string,
-    value: string
-}
-
 class HttpProperty extends Property {
-    constructor(device: HttpDevice, property: PropertyInfos) {
+    constructor(device: HttpDevice, property: AProperty) {
         super(device, property.name, {
             title: property.name,
             type: property.responseType ?? 'string'
@@ -155,13 +123,13 @@ class HttpDevice extends Device {
     private callbacks: { [name: string]: () => void } = {};
 
     constructor(adapter: any, device: DeviceTemplate) {
-        super(adapter, device.id);
+        super(adapter, <string>device.id);
         this['@context'] = 'https://iot.mozilla.org/schemas/';
         this.name = device.name;
 
         if (device.actions) {
             for (const action of device.actions) {
-                this.addCallbackAction(action.name, action.description, async () => {
+                this.addCallbackAction(action.name, action.description ?? '', async () => {
                     execute(action);
                 });
             }
@@ -225,7 +193,6 @@ export class HttpAdapter extends Adapter {
         const config: Config = await this.database.loadConfig();
         let {
             debug,
-            actions,
             devices
         } = config;
 
@@ -237,34 +204,6 @@ export class HttpAdapter extends Adapter {
 
         if (!devices) {
             devices = [];
-        }
-
-        // Transition old schema to new
-        if (actions) {
-            console.log('Migrate from old schema');
-
-            for (const action of actions) {
-                const device: DeviceTemplate = {
-                    id: action.id,
-                    name: action.name,
-                    actions: [
-                        {
-                            name: 'invoke',
-                            description: 'Invoke the action',
-                            url: action.url,
-                            method: action.method,
-                            contentType: action.contentType,
-                            queryParameters: action.queryParameters,
-                            bodyParameters: action.bodyParameters,
-                        },
-                    ],
-                };
-
-                devices.push(device);
-            }
-
-            delete config.actions;
-            config.devices = devices;
         }
 
         for (let device of devices) {

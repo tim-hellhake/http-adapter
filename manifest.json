@@ -138,7 +138,7 @@
                 "title": "A list of HTTP properties",
                 "items": {
                   "type": "object",
-                  "title": "An action",
+                  "title": "A property",
                   "required": [
                     "name",
                     "url",
