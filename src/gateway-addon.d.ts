@@ -10,6 +10,9 @@ declare module 'gateway-addon' {
         public name: string;
         protected title: string;
         protected type: string;
+        protected unit: string;
+        protected minimum: number;
+        protected maximum: number;
         constructor(device: Device, name: string, propertyDescr: {});
         public setCachedValue(value: any): void;
         public setCachedValueAndNotify(value: any): void;

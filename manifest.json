@@ -232,6 +232,18 @@
                         "VoltageProperty"
                       ]
                     },
+                    "unit": {
+                      "type": "string",
+                      "title": "The unit of the value"
+                    },
+                    "minimum": {
+                      "type": "number",
+                      "title": "The minimum value"
+                    },
+                    "maximum": {
+                      "type": "number",
+                      "title": "The maximum value"
+                    },
                     "url": {
                       "type": "string",
                       "title": "The URL"

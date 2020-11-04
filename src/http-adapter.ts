@@ -104,6 +104,18 @@ class HttpProperty extends Property {
             this['@type'] = property.type;
         }
 
+        if (property.unit) {
+            this['unit'] = property.unit;
+        }
+
+        if (property.minimum) {
+            this['minimum'] = property.minimum;
+        }
+
+        if (property.maximum) {
+            this['maximum'] = property.maximum;
+        }
+
         setInterval(async () => {
             const response = await execute(property);
             const text = await response.text();
