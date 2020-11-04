@@ -97,7 +97,7 @@ class HttpProperty extends Property {
         super(device, property.name, {
             title: property.name,
             type: property.responseType ?? 'string',
-            readonly: true
+            readOnly: true
         });
 
         if (property.type) {
